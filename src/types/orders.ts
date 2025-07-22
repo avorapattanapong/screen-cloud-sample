@@ -13,3 +13,11 @@ export type OrderQuote = {
   shippingCost: number;
   allocations: WarehouseAllocation[];
 };
+
+export type Warehouse = {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  stock: number;
+}
