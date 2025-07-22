@@ -1,6 +1,8 @@
 // src/index.ts
 import Fastify from 'fastify';
 import dotenv from 'dotenv';
+import {ordersRoutes} from "./api/orders";
+import {warehouseRoutes} from "./api/warehouse";
 
 // Load .env variables (e.g., DB connection)
 dotenv.config();
@@ -10,10 +12,14 @@ const app = Fastify({
   logger: true  // Enables built-in logging
 });
 
-// Example health route
+// Monitoring endpoint
 app.get('/health', async (request, reply) => {
   return { status: 'ok' };
 });
+
+// Register routes
+app.register(warehouseRoutes);
+app.register(ordersRoutes);
 
 // Start the server
 app.listen({ port: 3000 }, (err, address) => {
