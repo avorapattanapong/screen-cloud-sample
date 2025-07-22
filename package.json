@@ -1,0 +1,37 @@
+{
+  "name": "screen-cloud-sample",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node-dev --respawn src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/avorapattanapong/screen-cloud-sample.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/avorapattanapong/screen-cloud-sample/issues"
+  },
+  "homepage": "https://github.com/avorapattanapong/screen-cloud-sample#readme",
+  "dependencies": {
+    "@prisma/client": "^6.12.0",
+    "fastify": "^4.29.1",
+    "fastify-cors": "^6.0.3",
+    "fastify-zod": "^1.4.0",
+    "prisma": "^6.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.15",
+    "@types/ws": "^8.18.1",
+    "dotenv": "^17.2.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.3"
+  }
+}
