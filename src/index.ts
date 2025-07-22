@@ -18,8 +18,8 @@ app.get('/health', async (request, reply) => {
 });
 
 // Register routes
-app.register(warehouseRoutes);
-app.register(ordersRoutes);
+app.register(warehouseRoutes, { prefix: '/v1' });
+app.register(ordersRoutes, { prefix: '/v1' });
 
 // Start the server
 app.listen({ port: 3000 }, (err, address) => {
