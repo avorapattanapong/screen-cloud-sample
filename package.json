@@ -43,6 +43,10 @@
     "globals": "^16.3.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.38.0"
+    "typescript-eslint": "^8.38.0",
+    "zod-to-json-schema": "^3.24.6"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }
