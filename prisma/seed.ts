@@ -3,12 +3,12 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🧹 Clearing old data...');
+  console.log('Clearing old data');
   await prisma.orderAllocation.deleteMany();
   await prisma.order.deleteMany();
   await prisma.warehouse.deleteMany();
 
-  console.log('🌱 Seeding warehouses...');
+  console.log('Seeding warehouses');
   await prisma.warehouse.createMany({
     data: [
       { name: 'Los Angeles', latitude: 33.9425, longitude: -118.408056, stock: 355 },
@@ -20,12 +20,12 @@ async function main() {
     ]
   });
 
-  console.log('✅ Seed complete!');
+  console.log('Seed complete');
 }
 
 main()
 .catch((e) => {
-  console.error('❌ Seed error:', e);
+  console.error('Seed error:', e);
   process.exit(1);
 })
 .finally(() => prisma.$disconnect());

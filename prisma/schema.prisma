@@ -34,7 +34,8 @@ model Order {
   discount       Float
   shippingCost   Float
   isValid        Boolean
-  status         String             @default("pending") // new status field
+  status         String             @default("pending")
+  email          String
   allocations    OrderAllocation[]
 }
 

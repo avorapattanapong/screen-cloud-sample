@@ -1,5 +1,3 @@
-import { PrismaClient } from '@prisma/client';
-
 import { calculateDistanceKm } from '../utils/distance';
 import { calculateDiscountRate } from '../utils/discount';
 import {
@@ -9,8 +7,7 @@ import {
   SHIPPING_RATE_PER_KG_KM
 } from "../config/contants";
 import {OrderQuote, WarehouseAllocation} from "../types/orders";
-
-const prisma = new PrismaClient();
+import {WarehouseRepository} from "../repositories/warehouseRepository";
 
 /**
  * Verify whether an order can be fulfilled given the current warehouse stock and location.
@@ -29,7 +26,7 @@ export const verifyOrder = async (quantity: number, shippingLat: number, shippin
   if (quantity <= 0) throw new Error('Quantity must be greater than zero.');
 
   // Get all warehouses from the database
-  const warehouses = await prisma.warehouse.findMany();
+  const warehouses = await WarehouseRepository.getWarehouses();
   const allocations: WarehouseAllocation[] = [];
 
   // Calculate the shipping cost for each warehouse
@@ -65,16 +62,17 @@ export const verifyOrder = async (quantity: number, shippingLat: number, shippin
     remaining -= allocated;
   }
 
-  if (remaining > 0) {
-    throw new Error(`Insufficient stock to fulfill order. Still need ${remaining} units.`);
-  }
-
   const discountRate = calculateDiscountRate(quantity);
   const originalTotal = DEVICE_PRICE * quantity;
   const discountAmount = originalTotal * discountRate;
   const discountedTotal = originalTotal - discountAmount;
 
-  const isValid = totalShipping <= discountedTotal * SHIPPING_COST_LIMIT;
+  if (remaining > 0) {
+    // Set up an alert system here to notify warehouses
+    console.error('Insufficient stock to fulfill order');
+  }
+
+  const isValid = remaining <= 0 && totalShipping <= discountedTotal * SHIPPING_COST_LIMIT;
 
   return {
     isValid,

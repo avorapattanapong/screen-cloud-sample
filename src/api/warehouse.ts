@@ -23,7 +23,7 @@ export const warehouseRoutes = async (fastify :FastifyInstance) => {
    **/
   fastify.get("/warehouses", async (request: FastifyRequest, reply: FastifyReply) => {
     const warehouses = await getWarehouses();
-    console.log(warehouses);
+
     return reply.send(warehouses);
   });
 }

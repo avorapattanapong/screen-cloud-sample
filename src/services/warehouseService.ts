@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
 import {Warehouse} from "../types/orders";
-
-const prisma = new PrismaClient();
+import {WarehouseRepository} from "../repositories/warehouseRepository";
 
 /**
  * Get all warehouses from the database.
@@ -9,5 +7,5 @@ const prisma = new PrismaClient();
  * @returns A promise resolving to an array of Warehouse objects.
  */
 export const getWarehouses = async (): Promise<Warehouse[]> => {
-  return prisma.warehouse.findMany();
+  return WarehouseRepository.getWarehouses();
 }
