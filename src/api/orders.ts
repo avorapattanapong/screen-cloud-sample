@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
-import {verifyOrder} from "../services/orderService";
+import {createOrder, verifyOrder} from "../services/orderService";
 
 const verifyOrderBodySchema = z.object({
   quantity: z.number().int().min(1),
@@ -14,6 +14,19 @@ const verifyOrderBodySchema = z.object({
 });
 const verifyOrderBodyJsonSchema = zodToJsonSchema(verifyOrderBodySchema);
 type VerifyOrderBody = z.infer<typeof verifyOrderBodySchema>;
+
+const createOrderBodySchema = z.object({
+  email: z.string().email(),
+  quantity: z.number().int().min(1),
+  shippingLat: z.number().refine((lat) => lat >= -90 && lat <= 90, {
+    message: "Latitude must be between -90 and 90",
+  }),
+  shippingLng: z.number().refine((lng) => lng >= -180 && lng <= 180, {
+    message: "Longitude must be between -180 and 180",
+  }),
+});
+const createOrderBodyJsonSchema = zodToJsonSchema(createOrderBodySchema);
+type CreateOrderBody = z.infer<typeof createOrderBodySchema>;
 
 /**
  * @openapi
@@ -45,6 +58,17 @@ export const ordersRoutes = async (fastify :FastifyInstance) => {
   }, async (request: FastifyRequest<{ Body: VerifyOrderBody }>, reply: FastifyReply) => {
       const { quantity, shippingLat, shippingLng } = request.body;
       const result = await verifyOrder(quantity, shippingLat, shippingLng);
+      return reply.send(result);
+    }
+  );
+
+  fastify.post("/orders", {
+    schema: {
+      body: createOrderBodyJsonSchema
+    }
+  }, async (request: FastifyRequest<{ Body: CreateOrderBody }>, reply: FastifyReply) => {
+      const { email, quantity, shippingLat, shippingLng } = request.body;
+      const result = await createOrder(email, quantity, shippingLat, shippingLng);
       return reply.send(result);
     }
   );

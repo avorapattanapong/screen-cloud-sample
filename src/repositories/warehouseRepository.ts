@@ -10,4 +10,17 @@ export const WarehouseRepository = {
   getWarehouses: async (): Promise<Warehouse[]> => {
     return prisma.warehouse.findMany();
   },
+
+  updateWarehouseStock  : async (warehouseId: string, quantity: number): Promise<void> => {
+    await prisma.warehouse.update({
+      where: {
+        id: warehouseId
+      },
+      data: {
+        stock: {
+          increment: quantity
+        }
+      }
+    });
+  }
 }

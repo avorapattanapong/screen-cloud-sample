@@ -13,3 +13,11 @@ export const VOLUME_DISCOUNTS = [
   { minQty: 50,  discount: 0.10 },
   { minQty: 25,  discount: 0.05 }
 ];
+
+export const ORDER_STATUS = {
+  PENDING: 'PENDING',
+  SHIPPED: 'SHIPPED',
+  DELIVERED: 'DELIVERED',
+  CANCELLED: 'CANCELLED'
+};
+

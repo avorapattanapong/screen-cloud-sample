@@ -2,12 +2,14 @@ import { calculateDistanceKm } from '../utils/distance';
 import { calculateDiscountRate } from '../utils/discount';
 import {
   DEVICE_PRICE,
-  DEVICE_WEIGHT_KG,
+  DEVICE_WEIGHT_KG, ORDER_STATUS,
   SHIPPING_COST_LIMIT,
   SHIPPING_RATE_PER_KG_KM
 } from "../config/contants";
-import {OrderQuote, WarehouseAllocation} from "../types/orders";
+import {GetOrderResponse, OrderPayload, OrderQuote, WarehouseAllocation} from "../types/orders";
 import {WarehouseRepository} from "../repositories/warehouseRepository";
+import {getInvalidOrderReason, INVALID_ORDER_REASONS} from "../utils/invalidOrder";
+import {OrderRepository} from "../repositories/orderRepository";
 
 /**
  * Verify whether an order can be fulfilled given the current warehouse stock and location.
@@ -74,11 +76,52 @@ export const verifyOrder = async (quantity: number, shippingLat: number, shippin
 
   const isValid = remaining <= 0 && totalShipping <= discountedTotal * SHIPPING_COST_LIMIT;
 
+  const invalidErrorCode = getInvalidOrderReason(discountedTotal, totalShipping, quantity, remaining > 0);
   return {
     isValid,
     totalPrice: discountedTotal,
     discount: discountAmount,
     shippingCost: totalShipping,
+    invalidReason: invalidErrorCode ? INVALID_ORDER_REASONS[invalidErrorCode] : 'Order rejected - not valid',
     allocations
   };
+}
+
+/**
+ * Creates an order given the input parameters.
+ * @param email The customer's email address.
+ * @param quantity The quantity of SCOS devices to order.
+ * @param shippingLat The shipping latitude.
+ * @param shippingLng The shipping longitude.
+ * @returns A promise that resolves to an `OrderPayload` object, which contains the order information.
+ * If the order is invalid, the `id` and `createdAt` fields will be null and the `status` will be set to `ORDER_STATUS.CANCELLED`.
+ */
+export const createOrder = async (email: string, quantity: number, shippingLat: number, shippingLng: number): Promise<OrderPayload> => {
+  const quote = await verifyOrder(quantity, shippingLat, shippingLng);
+
+  if (!quote.isValid) {
+    return {
+      id: null,
+      createdAt: null,
+      ...quote,
+      status: ORDER_STATUS.CANCELLED
+    }
+  }
+
+  const order = await OrderRepository.createOrder(email, quantity, shippingLat, shippingLng, quote.totalPrice, quote.discount, quote.shippingCost, quote.allocations);
+  if (!order || !order.id) {
+    throw new Error("Order creation failed");
+  }
+
+  // once order is created, deduduct stock from warehouses
+  for (const alloc of quote.allocations) {
+    // Quantity is negative to decrement stock from warehouse
+    await WarehouseRepository.updateWarehouseStock(alloc.warehouseId, alloc.quantity * -1);
+  }
+
+  return order;
+}
+
+export const getOrderById = async (id: string): Promise<GetOrderResponse | null> => {
+  return await OrderRepository.getOrderById(id);
 }
