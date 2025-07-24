@@ -122,6 +122,14 @@ export const createOrder = async (email: string, quantity: number, shippingLat: 
   return order;
 }
 
+export const getOrders = async (): Promise<GetOrderResponse[] | null> => {
+  return await OrderRepository.getOrders();
+}
+
 export const getOrderById = async (id: string): Promise<GetOrderResponse | null> => {
   return await OrderRepository.getOrderById(id);
+}
+
+export const getOrdersByEmail = async (email: string): Promise<GetOrderResponse[] | null> => {
+  return await OrderRepository.getOrdersByEmail(email);
 }

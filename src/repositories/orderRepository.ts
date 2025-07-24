@@ -94,28 +94,47 @@ export const OrderRepository = {
     });
 
     return mapOrderToGetOrderResponse(order);
-  }
-};
-
-export const getOrdersByEmail = async (email: string): Promise<GetOrderResponse[] | null> => {
-  const orders = await prisma.order.findMany({
-    where: {
-      email,
-    },
-    include: {
-      allocations: {
-        include: {
-          warehouse: true
+  },
+  getOrdersByEmail: async (email: string): Promise<GetOrderResponse[] | null> => {
+    const orders = await prisma.order.findMany({
+      where: {
+        email,
+      },
+      include: {
+        allocations: {
+          include: {
+            warehouse: true
+          }
         }
       }
+    });
+
+    const response = [];
+    for(const order of orders) {
+      const orderResponse = mapOrderToGetOrderResponse(order);
+      if (orderResponse) response.push(orderResponse);
     }
-  });
 
-  const response = [];
-  for(const order of orders) {
-    const orderResponse = mapOrderToGetOrderResponse(order);
-    if (orderResponse) response.push(orderResponse);
+    return response;
+  },
+
+  getOrders: async (): Promise<GetOrderResponse[] | null> => {
+    const orders = await prisma.order.findMany({
+      include: {
+        allocations: {
+          include: {
+            warehouse: true
+          }
+        }
+      }
+    });
+
+    const response = [];
+    for (const order of orders) {
+      const orderResponse = mapOrderToGetOrderResponse(order);
+      if (orderResponse) response.push(orderResponse);
+    }
+
+    return response;
   }
-
-  return response;
-}
+};
