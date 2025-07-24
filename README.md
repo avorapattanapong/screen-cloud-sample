@@ -94,6 +94,54 @@ This project is a robust Fastify + TypeScript backend for managing orders and wa
 - **Customer Identifier via Email:**
   - Orders include an `email` field (not unique) to allow searching and grouping by customer. This was added for practical querying, though not in the original requirements.
 
+## Considerations for Production Readiness
+
+To deploy this project in a production environment, consider the following:
+
+### Monitoring & Observability
+- **Integrate monitoring tools** (e.g., Prometheus, Grafana, Datadog) for metrics, logs, and alerts.
+- **Centralized logging** (e.g., ELK stack, Loki) for troubleshooting and audit trails.
+- **Distributed tracing** (e.g., OpenTelemetry) for tracking request flows.
+
+### Health Check Endpoint
+- Expose a `/health` endpoint for liveness/readiness probes (used by orchestrators like Kubernetes).
+- Example Fastify route:
+  ```ts
+  fastify.get('/health', async (req, reply) => reply.send({ status: 'ok' }))
+  ```
+
+### API Gateway & Security
+- Deploy behind an API Gateway (e.g., NGINX, Kong, AWS API Gateway) for:
+  - SSL termination
+  - Rate limiting & throttling
+  - IP whitelisting/blacklisting
+  - Request/response size limits
+  - CORS management
+- Enable HTTPS in production.
+- Use environment variables for secrets (never commit secrets to source control).
+- Consider WAF (Web Application Firewall) for additional protection.
+
+### Authentication & Authorization
+- Implement OAuth 2.0, JWT, or another authentication mechanism.
+- Apply RBAC (Role-Based Access Control) for sensitive endpoints.
+
+### Database & Data
+- Use managed database services or configure backups and replication.
+- Run migrations automatically with CI/CD or on container startup.
+- Monitor DB connections and resource usage.
+
+### Scalability & Availability
+- Deploy with container orchestration (e.g., Kubernetes, Docker Swarm).
+- Use horizontal scaling and load balancers.
+- Configure readiness/liveness probes for self-healing.
+
+### Additional Recommendations
+- Use environment-based configuration (dev, staging, prod).
+- Regularly update dependencies and monitor for vulnerabilities.
+- Document all APIs and provide a static OpenAPI/Swagger UI for consumers.
+- Set up alerting for critical errors and downtime.
+- Address some of deprecated warnings of dependencies
+
 ## 🚀 Things to Improve
 
 - **Search Warehouse by Geographic Area:**
