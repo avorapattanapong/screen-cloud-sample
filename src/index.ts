@@ -25,7 +25,7 @@ app.register(warehouseRoutes, { prefix: '/v1' });
 app.register(ordersRoutes, { prefix: '/v1' });
 
 // Start the server
-app.listen({ port: 3000 }, (err, address) => {
+app.listen({ port: 3000, host: '0.0.0.0' }, (err, address) => {
   if (err) {
     app.log.error(err);
     process.exit(1);
