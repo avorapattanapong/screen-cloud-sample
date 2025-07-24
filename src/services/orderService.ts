@@ -10,6 +10,8 @@ import {GetOrderResponse, OrderPayload, OrderQuote, WarehouseAllocation} from ".
 import {WarehouseRepository} from "../repositories/warehouseRepository";
 import {getInvalidOrderReason, INVALID_ORDER_REASONS} from "../utils/invalidOrder";
 import {OrderRepository} from "../repositories/orderRepository";
+import { ServiceError } from "./errors";
+import { RepositoryError } from "../repositories/errors";
 
 /**
  * Verify whether an order can be fulfilled given the current warehouse stock and location.
@@ -97,39 +99,72 @@ export const verifyOrder = async (quantity: number, shippingLat: number, shippin
  * If the order is invalid, the `id` and `createdAt` fields will be null and the `status` will be set to `ORDER_STATUS.CANCELLED`.
  */
 export const createOrder = async (email: string, quantity: number, shippingLat: number, shippingLng: number): Promise<OrderPayload> => {
-  const quote = await verifyOrder(quantity, shippingLat, shippingLng);
+  try {
+    const quote = await verifyOrder(quantity, shippingLat, shippingLng);
 
-  if (!quote.isValid) {
-    return {
-      id: null,
-      createdAt: null,
-      ...quote,
-      status: ORDER_STATUS.CANCELLED
+    if (!quote.isValid) {
+      return {
+        id: null,
+        createdAt: null,
+        ...quote,
+        status: ORDER_STATUS.CANCELLED
+      }
     }
-  }
 
-  const order = await OrderRepository.createOrder(email, quantity, shippingLat, shippingLng, quote.totalPrice, quote.discount, quote.shippingCost, quote.allocations);
-  if (!order || !order.id) {
-    throw new Error("Order creation failed");
-  }
+    const order = await OrderRepository.createOrder(email, quantity, shippingLat, shippingLng, quote.totalPrice, quote.discount, quote.shippingCost, quote.allocations);
+    if (!order || !order.id) {
+      throw new ServiceError("OrderFailed", "Order creation failed");
+    }
+    for (const alloc of quote.allocations) {
+      await WarehouseRepository.updateWarehouseStock(alloc.warehouseId, alloc.quantity * -1);
+    }
+    return order;
+  } catch (err) {
+    if (err instanceof RepositoryError) {
+      // Detect unique constraint error from RepositoryError.cause (Prisma error code P2002)
+      if (err.cause && typeof err.cause === 'object' && 'code' in err.cause && err.cause.code === 'P2002') {
+        throw new ServiceError("InvalidInput", "Unique constraint violation", err);
+      }
 
-  // once order is created, deduduct stock from warehouses
-  for (const alloc of quote.allocations) {
-    // Quantity is negative to decrement stock from warehouse
-    await WarehouseRepository.updateWarehouseStock(alloc.warehouseId, alloc.quantity * -1);
-  }
+      throw new ServiceError("Repository", err.message, err);
+    }
 
-  return order;
+    if (err instanceof ServiceError) {
+      throw err;
+    }
+    throw new ServiceError("Unknown", "Unknown error during order creation", err);
+  }
 }
 
 export const getOrders = async (): Promise<GetOrderResponse[] | null> => {
-  return await OrderRepository.getOrders();
+  try {
+    return await OrderRepository.getOrders();
+  } catch (err) {
+    if (err instanceof RepositoryError) {
+      throw new ServiceError("Repository", err.message, err);
+    }
+    throw new ServiceError("Unknown", "Unknown error during getOrders", err);
+  }
 }
 
 export const getOrderById = async (id: string): Promise<GetOrderResponse | null> => {
-  return await OrderRepository.getOrderById(id);
+  try {
+    return await OrderRepository.getOrderById(id);
+  } catch (err) {
+    if (err instanceof RepositoryError) {
+      throw new ServiceError("Repository", err.message, err);
+    }
+    throw new ServiceError("Unknown", "Unknown error during getOrderById", err);
+  }
 }
 
 export const getOrdersByEmail = async (email: string): Promise<GetOrderResponse[] | null> => {
-  return await OrderRepository.getOrdersByEmail(email);
+  try {
+    return await OrderRepository.getOrdersByEmail(email);
+  } catch (err) {
+    if (err instanceof RepositoryError) {
+      throw new ServiceError("Repository", err.message, err);
+    }
+    throw new ServiceError("Unknown", "Unknown error during getOrdersByEmail", err);
+  }
 }

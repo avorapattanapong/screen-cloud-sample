@@ -3,6 +3,7 @@ import Fastify from 'fastify';
 import dotenv from 'dotenv';
 import {ordersRoutes} from "./api/orders";
 import {warehouseRoutes} from "./api/warehouse";
+import { registerGlobalErrorHandler } from "./api/errorHandler";
 
 // Load .env variables (e.g., DB connection)
 dotenv.config();
@@ -11,6 +12,8 @@ dotenv.config();
 const app = Fastify({
   logger: true  // Enables built-in logging
 });
+
+registerGlobalErrorHandler(app);
 
 // Monitoring endpoint
 app.get('/health', async (request, reply) => {
