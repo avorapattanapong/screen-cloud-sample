@@ -78,13 +78,18 @@ export const verifyOrder = async (quantity: number, shippingLat: number, shippin
 
   const isValid = remaining <= 0 && totalShipping <= discountedTotal * SHIPPING_COST_LIMIT;
 
-  const invalidErrorCode = getInvalidOrderReason(discountedTotal, totalShipping, quantity, remaining > 0);
+  let invalidReason = null;
+  if (!isValid) {
+    const invalidErrorCode = getInvalidOrderReason(discountedTotal, totalShipping, quantity, remaining > 0);
+    invalidReason = invalidErrorCode === null ? 'Order rejected - not valid' : INVALID_ORDER_REASONS[invalidErrorCode];
+  }
+
   return {
     isValid,
     totalPrice: discountedTotal,
     discount: discountAmount,
     shippingCost: totalShipping,
-    invalidReason: invalidErrorCode ? INVALID_ORDER_REASONS[invalidErrorCode] : 'Order rejected - not valid',
+    invalidReason,
     allocations
   };
 }
