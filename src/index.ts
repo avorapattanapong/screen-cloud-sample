@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import {ordersRoutes} from "./api/orders";
 import {warehouseRoutes} from "./api/warehouse";
 import { registerGlobalErrorHandler } from "./api/errorHandler";
+import {connectToDb} from "./utils/prisma";
 
 // Load .env variables (e.g., DB connection)
 dotenv.config();
@@ -12,6 +13,8 @@ dotenv.config();
 const app = Fastify({
   logger: true  // Enables built-in logging
 });
+
+connectToDb();
 
 registerGlobalErrorHandler(app);
 
